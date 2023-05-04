@@ -16,7 +16,8 @@ The API layer exposes endpoints for querying and updating the data. While GraphQ
 
 The endpoints will look like this:
 
-```GET /api/v1/methane          # The endpoint specifies the specific queried resource
+```
+GET /api/v1/methane          # The endpoint specifies the specific queried resource
                                 # Query parameters:
     ?page=1                     # Used for pagination, since esults are limited to 50 per page
     &startDate=1683219246734    # startDate: Numerical timestmap. Return only results with start date higher than this value
