@@ -1,73 +1,44 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo_text.svg" width="320" alt="Nest Logo" /></a>
-</p>
+# Task 2a: Architecture
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Framework
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+NestJS will be used as a framework, because it's perfect for writing APIs. Its module based approach forces the developer into writing clean code that can be unit-tested fairly easily. It also provides a native module for integrating with MongoDB.
 
-## Description
+## Data ingestion
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+The data will be stored in a MongoDB database instance. Due to the quite uncomplicated data structure with no relations, a document based database engine is used. To work with the data conveniently in code, mongoose will be used.
 
-## Installation
+For ensuring high performance and to avoid overloading the database server, we are going to use an HTTP middleware that caches data in-memory for a short time.
 
-```bash
-$ npm install
+## API Layer
+
+The API layer exposes endpoints for querying and updating the data. While GraphQL might be a better choice here in regards of filtering and aggregating data, I will implement it using REST since that's where I have the most experience with.
+
+The endpoints will look like this:
+
+```GET /api/v1/methane          # The endpoint specifies the specific queried resource
+                                # Query parameters:
+    ?page=1                     # Used for pagination, since esults are limited to 50 per page
+    &startDate=1683219246734    # startDate: Numerical timestmap. Return only results with start date higher than this value
+    &endDate=1683219267900      # endDate: Numberical timestamp. Return only results with end date lower than this value
+    &minAvg=1000                # minAvg: Return only results with average higher than this value
+    &aggregate=sum              # aggregate: Specify an aggregate function for aggregating the averages from the filtered result set
 ```
 
-## Running the app
+## Caching
 
-```bash
-# development
-$ npm run start
+For ensuring the ability to handle a large amount of requests, an HTTP Middleware caching GET requests will be implemented
 
-# watch mode
-$ npm run start:dev
+## Scaling
 
-# production mode
-$ npm run start:prod
-```
+The whole application should be stateless so it can be scaled up horizontally in combination with a load balancer like haproxy or traefik, as long as all instances are configured to use the same database.
 
-## Test
+## Streaming
 
-```bash
-# unit tests
-$ npm run test
+To allow for real-time streaming of the data, we are going to expose a websocket endpoint that can be subscribed to.
 
-# e2e tests
-$ npm run test:e2e
+## Error handling
 
-# test coverage
-$ npm run test:cov
-```
+To ensure that the system is robust and handles errors gracefully, we are streaming our logs to a log aggregator and monitoring them using a dashboard. For this, Prometheus and Grafana can be used.
 
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+Also, clean code & a strict architecture will help us to either avoid some errors completely, or to handle them gracefully.
